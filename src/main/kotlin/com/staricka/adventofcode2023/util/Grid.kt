@@ -20,6 +20,21 @@ open class Grid<T> {
             cells.remove(x)
         }
     }
+
+    fun neighbors(original: Set<Pair<Int, Int>>): Map<Pair<Int,Int>, T?> =
+        original.flatMap {
+            ((it.first - 1)..(it.first + 1)).flatMap { x ->
+                ((it.second -1 )..(it.second + 1)).map { y ->
+                    Pair(x,y)
+                }
+            }
+        }.filterNot {
+            original.contains(it)
+        }.associateWith {
+            k -> this[k.first, k.second]
+        }
+
+    fun neighbors(x: Int, y: Int): Map<Pair<Int,Int>, T?> = neighbors(setOf(Pair(x, y)))
 }
 
 /**

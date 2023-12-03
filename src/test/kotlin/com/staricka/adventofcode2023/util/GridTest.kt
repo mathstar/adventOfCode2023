@@ -3,6 +3,7 @@ package com.staricka.adventofcode2023.util
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class StandardGridEnumTest {
     @Test
@@ -28,6 +29,30 @@ class StandardGridEnumTest {
 
         override val symbol: Char
             get() = name[0]
+    }
+
+    @Test
+    fun neighborsSingleTest() {
+        val grid = StandardGrid.buildWithStrings("A", CellValue::valueOf)
+        val neighbors = grid.neighbors(1, 1)
+        assertEquals(8, neighbors.size)
+        assertEquals(CellValue.A, neighbors[Pair(0,0)])
+        assertTrue(neighbors.containsKey(Pair(0,1)))
+        assertTrue(neighbors.containsKey(Pair(0,2)))
+        assertTrue(neighbors.containsKey(Pair(1,0)))
+        assertTrue(neighbors.containsKey(Pair(1,2)))
+        assertTrue(neighbors.containsKey(Pair(2,0)))
+        assertTrue(neighbors.containsKey(Pair(2,1)))
+        assertTrue(neighbors.containsKey(Pair(2,2)))
+    }
+
+    @Test
+    fun neighborsSetTest() {
+        val grid = StandardGrid<CellValue>()
+        val neighbors = grid.neighbors(setOf(
+            Pair(1,1), Pair(2,2), Pair(2,3)
+        ))
+        assertEquals(14, neighbors.size)
     }
 }
 

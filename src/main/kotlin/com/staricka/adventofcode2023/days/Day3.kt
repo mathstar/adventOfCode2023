@@ -1,11 +1,27 @@
 package com.staricka.adventofcode2023.days
 
 import com.staricka.adventofcode2023.framework.Day
+import com.staricka.adventofcode2023.util.Grid
 import com.staricka.adventofcode2023.util.GridCell
 import com.staricka.adventofcode2023.util.StandardGrid
 
 class Day3: Day {
     class Cell(override val symbol: Char): GridCell
+
+    /**
+     * Given the start coordinate of a number, determines the number and the end coordinate
+     * @return (number, end)
+     */
+    private fun identifyNumber(grid: Grid<Cell>, i: Int, j: Int): Pair<Int, Int> {
+        var j = j
+        var num = (grid[i, j]!!.symbol - '0')
+        while (grid[i, j + 1]?.symbol?.isDigit() == true) {
+            num *= 10
+            num += grid[i, j + 1]!!.symbol - '0'
+            j++
+        }
+        return Pair(num, j)
+    }
 
     override fun part1(input: String): Int {
         var sum = 0
@@ -14,20 +30,13 @@ class Day3: Day {
             var j = 0
             while (j <= input.lines().first().length) {
                 if (grid[i, j]?.symbol?.isDigit() == true) {
-                    val rangeStart = j-1
-                    var num = (grid[i, j]!!.symbol - '0')
-                    while (grid[i, j+1]?.symbol?.isDigit() == true) {
-                        num *= 10
-                        num += grid[i, j+1]!!.symbol - '0'
-                        j++
-                    }
-                    val rangeEnd = j+1
-                    range@ for (ri in (i-1)..(i+1)) {
-                        for (rj in rangeStart..rangeEnd) {
-                            if(grid[ri, rj]?.symbol?.isDigit() == false && grid[ri, rj]?.symbol != null && grid[ri, rj]?.symbol != '.') {
-                                sum += num
-                                break@range
-                            }
+                    val rangeStart = j
+                    var (num, rangeEnd) = identifyNumber(grid, i, j)
+                    j = rangeEnd
+                    for ((_,cell) in grid.neighbors((rangeStart..rangeEnd).map { Pair(i, it) }.toSet())) {
+                        if(cell?.symbol != null && !cell.symbol.isDigit() && cell.symbol != '.') {
+                            sum += num
+                            break
                         }
                     }
                 }
@@ -44,20 +53,13 @@ class Day3: Day {
             var j = 0
             while (j <= input.lines().first().length) {
                 if (grid[i, j]?.symbol?.isDigit() == true) {
-                    val rangeStart = j-1
-                    var num = (grid[i, j]!!.symbol - '0')
-                    while (grid[i, j+1]?.symbol?.isDigit() == true) {
-                        num *= 10
-                        num += grid[i, j+1]!!.symbol - '0'
-                        j++
-                    }
-                    val rangeEnd = j+1
-                    range@ for (ri in (i-1)..(i+1)) {
-                        for (rj in rangeStart..rangeEnd) {
-                            if(grid[ri, rj]?.symbol == '*') {
-                                val list = gears.computeIfAbsent(Pair(ri,rj)){_ -> ArrayList()}
-                                list.add(num)
-                            }
+                    val rangeStart = j
+                    var (num, rangeEnd) = identifyNumber(grid, i, j)
+                    j = rangeEnd
+                    for ((k,cell) in grid.neighbors((rangeStart..rangeEnd).map { Pair(i, it) }.toSet())) {
+                        if(cell?.symbol == '*') {
+                            val list = gears.computeIfAbsent(k){_ -> ArrayList()}
+                            list.add(num)
                         }
                     }
                 }
