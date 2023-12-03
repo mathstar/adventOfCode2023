@@ -64,6 +64,6 @@ class Day3: Day {
                 j++
             }
         }
-        return gears.entries.filter { (_, nums) -> nums.size == 2 }.sumOf { (_, nums) -> nums.reduce { a, n -> a * n } }
+        return gears.values.filter { it.size == 2 }.sumOf { it.reduce { a, n -> a * n } }
     }
 }
