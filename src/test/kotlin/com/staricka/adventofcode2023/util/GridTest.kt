@@ -54,6 +54,14 @@ class StandardGridEnumTest {
         ))
         assertEquals(14, neighbors.size)
     }
+
+    @Test
+    fun neighborsRangeTest() {
+        val grid = StandardGrid<CellValue>()
+        assertEquals(10, grid.neighbors(0, (0..1)).size)
+        assertEquals(10, grid.neighbors((0..1), 0).size)
+        assertEquals(12, grid.neighbors((3..4), (2..3)).size)
+    }
 }
 
 class StandardGridDynamicTest {

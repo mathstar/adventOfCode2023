@@ -35,6 +35,12 @@ open class Grid<T> {
         }
 
     fun neighbors(x: Int, y: Int): Map<Pair<Int,Int>, T?> = neighbors(setOf(Pair(x, y)))
+    fun neighbors(x: IntRange, y: Int): Map<Pair<Int, Int>, T?> =
+        neighbors(x.map { Pair(it, y) }.toHashSet())
+    fun neighbors(x: Int, y: IntRange): Map<Pair<Int, Int>, T?> =
+        neighbors(y.map { Pair(x, it) }.toHashSet())
+    fun neighbors(x: IntRange, y: IntRange): Map<Pair<Int, Int>, T?> =
+        neighbors(x.flatMap { i -> y.map { j -> Pair(i,j) } }.toHashSet())
 }
 
 /**
