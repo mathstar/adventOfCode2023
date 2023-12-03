@@ -24,7 +24,7 @@ class Day3Test {
 
     @Test
     fun part2() {
-        assertEquals(467835L, day.part1("""
+        assertEquals(467835, day.part2("""
             467..114..
             ...*......
             ..35..633.
