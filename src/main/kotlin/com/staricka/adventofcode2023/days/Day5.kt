@@ -4,8 +4,8 @@ import com.staricka.adventofcode2023.framework.Day
 import java.util.TreeMap
 import kotlin.math.min
 
-data class Mapping(val destinationStart:Long, val sourceStart:Long, val length:Long) {
-    fun inRange(value:Long): Boolean = value >= sourceStart && value < sourceStart + length
+data class Mapping(val destinationStart: Long, val sourceStart: Long, val length: Long) {
+    fun inRange(value: Long): Boolean = value >= sourceStart && value < sourceStart + length
     fun mapValue(value: Long): Long = destinationStart + (value - sourceStart)
 
     companion object {
