@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class Day5Test {
-    val day = Day5()
+    private val day = Day5()
 
     @Test
     fun part1Test() {

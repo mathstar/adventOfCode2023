@@ -25,7 +25,7 @@ data class Range(val start: Long, val length: Long) {
 }
 
 class Mappings(val sourceType: String, val destinationType: String) {
-    val entries = TreeMap<Long, Mapping>()
+    private val entries = TreeMap<Long, Mapping>()
 
     fun addMapping(mapping: Mapping) {
         entries[mapping.sourceStart] = mapping
@@ -51,18 +51,17 @@ class Mappings(val sourceType: String, val destinationType: String) {
                 start = end + 1
             } else {
                 val ceilMapping = entries.ceilingEntry(start)
-                if (ceilMapping != null) {
-                    val end = min(
-                        input.start + input.length - 1,
-                        ceilMapping.value.sourceStart - 1
-                    )
-                    result.add(Range.fromStartEnd(start, end))
-                    start = end + 1
-                } else {
-                    val end = input.start + input.length - 1
-                    result.add(Range.fromStartEnd(start, end))
-                    start = end + 1
-                }
+                val end =
+                    if (ceilMapping != null) {
+                        min(
+                            input.start + input.length - 1,
+                            ceilMapping.value.sourceStart - 1
+                        )
+                    } else {
+                        input.start + input.length - 1
+                    }
+                result.add(Range.fromStartEnd(start, end))
+                start = end + 1
             }
         }
         return result
@@ -106,6 +105,7 @@ typealias Seeds = List<Long>
 fun String.toSeeds(): Seeds {
     return this.split(":")[1].trim().split(" ").map { it.toLong() }
 }
+
 fun String.toSeedsFromRange(): List<Range> {
     val nums = this.toSeeds()
     var i = 0
@@ -118,9 +118,9 @@ fun String.toSeedsFromRange(): List<Range> {
 }
 
 class Day5: Day {
-    override fun part1(input: String): Any? {
+    override fun part1(input: String): Long {
         var seeds: Seeds? = null
-        var mappings = HashMap<String, Mappings>()
+        val mappings = HashMap<String, Mappings>()
         var currentMappings: Mappings? = null
         input.lines().forEach{
             if (seeds == null) {
@@ -137,9 +137,9 @@ class Day5: Day {
         return seeds!!.mapNotNull { getLocationForSeed(it, mappings) }.min()
     }
 
-    override fun part2(input: String): Any? {
+    override fun part2(input: String): Long {
         var seeds: List<Range>? = null
-        var mappings = HashMap<String, Mappings>()
+        val mappings = HashMap<String, Mappings>()
         var currentMappings: Mappings? = null
         input.lines().forEach{
             if (seeds == null) {
