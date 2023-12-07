@@ -102,16 +102,14 @@ class Day7: Day {
     override fun part1(input: String): Int {
         val hands = input.lines().filter { it.isNotBlank() }
             .map { Hand.fromString(it) }
-            .sorted()
-            .reversed()
+            .sortedDescending()
         return hands.withIndex().sumOf { (i,hand) -> (i+1)*hand.bid }
     }
 
     override fun part2(input: String): Int {
         val hands = input.lines().filter { it.isNotBlank() }
             .map { HandWithJokers.fromString(it) }
-            .sorted()
-            .reversed()
+            .sortedDescending()
         return hands.withIndex().sumOf { (i,hand) -> (i+1)*hand.bid }
     }
 }
