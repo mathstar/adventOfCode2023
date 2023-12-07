@@ -16,34 +16,26 @@ class Day7: Day {
 
         companion object {
             fun determineType(hand: Hand): HandType {
-                val counts = hand.cards.groupBy { it }
-                if (counts.size == 1) return FIVE_OF_A_KIND
-                if (counts.any { it.value.size == 4 }) return FOUR_OF_A_KIND
-                if (counts.any { it.value.size == 3 } && counts.any{ it.value.size == 2}) return FULL_HOUSE
-                if (counts.any { it.value.size == 3 }) return THREE_OF_A_KIND
-                if (counts.filter { it.value.size == 2 }.count() == 2) return TWO_PAIR
-                if (counts.any { it.value.size == 2 }) return ONE_PAIR
-                return HIGH_CARD
+                return determineType(hand.cards.groupBy { it }.map { it.value.size }.sortedDescending())
             }
 
             fun determineType(hand: HandWithJokers): HandType {
                 val counts = hand.cards.groupBy { it }
                 val jokerCount = counts[CardRankWithJokers.J]?.size ?: 0
 
-                val sortedCounts = counts.filter { it.key != CardRankWithJokers.J }.map { it.value.size }.sortedDescending().toMutableList()
-                sortedCounts.add(0)
+                var sortedCounts = counts.filter { it.key != CardRankWithJokers.J }.map { it.value.size }.sortedDescending().toMutableList()
+                if (sortedCounts.size > 0) sortedCounts[0] += jokerCount else sortedCounts = mutableListOf(jokerCount)
 
-                if (sortedCounts[0] == 5 - jokerCount) return FIVE_OF_A_KIND
-                if (sortedCounts[0] == 4 - jokerCount) return FOUR_OF_A_KIND
-                if (
-                    (sortedCounts[0] >= 3 - jokerCount && sortedCounts[1] == 2) ||
-                    (sortedCounts[0] == 3 && sortedCounts[1] >= 2 - jokerCount)
-                ) return FULL_HOUSE
-                if (sortedCounts[0] == 3 - jokerCount) return THREE_OF_A_KIND
-                if (
-                    sortedCounts[0] == 2 && sortedCounts[1] >= 2 - jokerCount
-                ) return TWO_PAIR
-                if (sortedCounts[0] == 2 - jokerCount) return ONE_PAIR
+                return determineType(sortedCounts)
+            }
+
+            private fun determineType(sortedCounts: List<Int>): HandType {
+                if (sortedCounts[0] == 5) return FIVE_OF_A_KIND
+                if (sortedCounts[0] == 4) return FOUR_OF_A_KIND
+                if (sortedCounts[0] == 3 && sortedCounts[1] == 2) return FULL_HOUSE
+                if (sortedCounts[0] == 3) return THREE_OF_A_KIND
+                if (sortedCounts[0] == 2 && sortedCounts[1] >= 2) return TWO_PAIR
+                if (sortedCounts[0] == 2 ) return ONE_PAIR
                 return HIGH_CARD
             }
         }
