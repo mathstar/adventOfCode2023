@@ -20,12 +20,10 @@ class InputDownloader: InputProvider {
     fun cacheInput(day: Int, input: String) {
         try {
             Files.createDirectory(Path("cache"))
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
         try {
             File("cache/day$day.txt").writeText(input)
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
     }
 
     fun downloadInput(day: Int): String =
