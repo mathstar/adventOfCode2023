@@ -1,7 +1,8 @@
 package com.staricka.adventofcode2023.framework
 
 import java.io.File
-import java.lang.Exception
+import java.nio.file.Files
+import kotlin.io.path.Path
 
 class InputDownloader: InputProvider {
     override fun getInput(day: Int): String {
@@ -16,10 +17,16 @@ class InputDownloader: InputProvider {
             null
         }
 
-    fun cacheInput(day: Int, input: String) =
+    fun cacheInput(day: Int, input: String) {
+        try {
+            Files.createDirectory(Path("cache"))
+        } catch (_: Exception) {
+        }
         try {
             File("cache/day$day.txt").writeText(input)
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
+    }
 
     fun downloadInput(day: Int): String =
         khttp.get(
