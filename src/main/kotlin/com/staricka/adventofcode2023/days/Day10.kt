@@ -5,8 +5,11 @@ import com.staricka.adventofcode2023.util.BasicCell
 import com.staricka.adventofcode2023.util.Grid
 import com.staricka.adventofcode2023.util.GridCell
 import com.staricka.adventofcode2023.util.StandardGrid
-import java.lang.Exception
 
+val UP = Pair(-1,0)
+val DOWN = Pair(1,0)
+val LEFT = Pair(0,-1)
+val RIGHT = Pair(0,1)
 class Day10: Day {
     enum class PipeType(private val connectingVectors: List<Pair<Int, Int>>): GridCell {
         `|`(listOf(Pair(-1, 0), Pair(1, 0))),
@@ -146,11 +149,13 @@ class Day10: Day {
                     }.map { it.key }
                 )
 
-                for (crackDetection in crackDetectionDatas) {
+                for (crackDetection in CrackDetectionData.crackDetectionDatas) {
                     if (crackDetection.applicable(p, grid, path)) {
                         val crackResult = crackDetection.flowThroughCrack(p, path, grid)
-                        if (crackResult != null && !reachable.contains(crackResult)) {
-                            nextSet.add(crackResult)
+                        for (crack in crackResult) {
+                            if (!reachable.contains(crack)) {
+                                nextSet.add(crack)
+                            }
                         }
                     }
                 }
@@ -180,7 +185,7 @@ class Day10: Day {
             initial: Pair<Int, Int>,
             path: Set<Pair<Int, Int>>,
             grid: Grid<PipeType>
-        ): Pair<Int, Int>? {
+        ): List<Pair<Int, Int>> {
             var crackBound1 = initial.plus(initializationVector1)
             var crackBound2 = initial.plus(initializationVector2)
             while (
@@ -193,24 +198,54 @@ class Day10: Day {
                 crackBound2 = crackBound2.plus(directionVector)
             }
             return if (!path.contains(crackBound1)) {
-                crackBound1
+                listOf(crackBound1)
             } else if (!path.contains(crackBound2)) {
-                crackBound2
+                listOf(crackBound2)
             } else {
-                null
+                crackBound1 = crackBound1.plus(directionVector.negate())
+                crackBound2 = crackBound2.plus(directionVector.negate())
+                val turnToward1 = when (directionVector) {
+                    UP -> crackDetectionDatas[4]
+                    DOWN -> crackDetectionDatas[5]
+                    LEFT -> crackDetectionDatas[0]
+                    RIGHT -> crackDetectionDatas[1]
+                    else -> throw Exception()
+                }
+
+                val turnToward2 = when(directionVector) {
+                    UP -> crackDetectionDatas[6]
+                    DOWN -> crackDetectionDatas[7]
+                    LEFT -> crackDetectionDatas[2]
+                    RIGHT -> crackDetectionDatas[3]
+                    else -> throw Exception()
+                }
+
+                val result = ArrayList<Pair<Int, Int>>()
+
+                if(turnToward1.applicable(crackBound2, grid, path)) {
+                    result.addAll(turnToward1.flowThroughCrack(crackBound2, path, grid))
+                }
+                if(turnToward2.applicable(crackBound1, grid, path)) {
+                    result.addAll(turnToward2.flowThroughCrack(crackBound1, path, grid))
+                }
+
+                result
             }
         }
+
+        companion object {
+            val crackDetectionDatas = listOf(
+                CrackDetectionData(Pair(-1, -1), Pair(-1,0), UP, listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
+                CrackDetectionData(Pair(-1, 0), Pair(-1,1), UP, listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
+                CrackDetectionData(Pair(1, -1), Pair(1,0), DOWN, listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
+                CrackDetectionData(Pair(1, 0), Pair(1,1), DOWN, listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
+                CrackDetectionData(Pair(-1, -1), Pair(0, -1), LEFT, listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
+                CrackDetectionData(Pair(0, -1), Pair(1, -1), LEFT, listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
+                CrackDetectionData(Pair(-1, 1), Pair(0, 1), RIGHT, listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
+                CrackDetectionData(Pair(0, 1), Pair(1, 1), RIGHT, listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
+            )
+        }
     }
-    val crackDetectionDatas = listOf(
-        CrackDetectionData(Pair(-1, -1), Pair(-1,0), Pair(-1, 0), listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
-        CrackDetectionData(Pair(-1, 0), Pair(-1,1), Pair(-1, 0), listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
-        CrackDetectionData(Pair(1, -1), Pair(1,0), Pair(1, 0), listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
-        CrackDetectionData(Pair(1, 0), Pair(1,1), Pair(1, 0), listOf(PipeType.J, PipeType.`7`, PipeType.`|`), listOf(PipeType.L, PipeType.F, PipeType.`|`)),
-        CrackDetectionData(Pair(-1, -1), Pair(0, -1), Pair(0, -1), listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
-        CrackDetectionData(Pair(0, -1), Pair(1, -1), Pair(0, -1), listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
-        CrackDetectionData(Pair(-1, 1), Pair(0, 1), Pair(0, 1), listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
-        CrackDetectionData(Pair(0, 1), Pair(1, 1), Pair(0, 1), listOf(PipeType.J, PipeType.L, PipeType.`-`), listOf(PipeType.`7`, PipeType.F, PipeType.`-`)),
-    )
 
     override fun part1(input: String): Any? {
         val grid = StandardGrid.buildWithStrings(input, PipeType::valueOf)
@@ -252,3 +287,4 @@ class Day10: Day {
 }
 
 fun Pair<Int, Int>.plus(other: Pair<Int, Int>) = Pair(this.first + other.first, this.second + other.second)
+fun Pair<Int,Int>.negate() = Pair(-1 * this.first, -1 * this.second)
