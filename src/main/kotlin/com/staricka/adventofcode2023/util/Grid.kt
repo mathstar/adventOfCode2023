@@ -11,6 +11,7 @@ open class Grid<T> {
     protected val cells = HashMap<Int, HashMap<Int, T?>>()
 
     operator fun get(x: Int, y: Int): T? = cells[x]?.get(y)
+    fun get(p: Pair<Int, Int>): T? = this[p.first, p.second]
     operator fun set(x: Int, y: Int, value: T?) {
         cells.computeIfAbsent(x){HashMap()}[y] = value
     }
@@ -18,6 +19,13 @@ open class Grid<T> {
         cells[x]?.remove(y)
         if (cells[x]?.isEmpty() == true) {
             cells.remove(x)
+        }
+    }
+
+    fun cells(): List<Triple<Int, Int, T>> {
+        return cells.entries.flatMap {
+            (x, e) -> e.entries.filter { (_, v) -> v != null }
+                .map { (y, v) -> Triple(x,y,v!!) }
         }
     }
 
