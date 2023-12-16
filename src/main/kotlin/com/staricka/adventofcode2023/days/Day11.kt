@@ -12,33 +12,7 @@ class Day11(val oldMultiplier: Long = 1000000): Day {
         override val symbol = name[0]
     }
 
-    private fun expandGrid(grid: StandardGrid<Galaxy>): StandardGrid<Galaxy> {
-        val emptyRows = (grid.minX..grid.maxX).filter { grid.row(it).isEmpty() }.toSortedSet()
-        val emptyCols = (grid.minY..grid.maxY).filter { grid.col(it).isEmpty() }.toSortedSet()
-
-        val expanded = StandardGrid<Galaxy>()
-        for ((x,y,v) in grid.cells()) {
-            val xInc = emptyRows.headSet(x).size
-            val yInc = emptyCols.headSet(y).size
-            expanded[x+xInc, y+yInc] = v
-        }
-        return expanded
-    }
-
-    private fun calculateDistances(grid: StandardGrid<Galaxy>): Int {
-        val galaxies = grid.cells()
-        var total = 0
-        for (i in galaxies.indices) {
-            for (j in (i+1 until galaxies.size)) {
-                val (x1,y1,_) = galaxies[i]
-                val (x2,y2,_) = galaxies[j]
-                total += abs(x1 - x2) + abs(y1 - y2)
-            }
-        }
-        return total
-    }
-
-    private fun calculateDistancesOld(grid: StandardGrid<Galaxy>, multiplier: Long = oldMultiplier): Long {
+    private fun calculateDistances(grid: StandardGrid<Galaxy>, multiplier: Long): Long {
         val emptyRows = (grid.minX..grid.maxX).filter { grid.row(it).isEmpty() }.toSortedSet()
         val emptyCols = (grid.minY..grid.maxY).filter { grid.col(it).isEmpty() }.toSortedSet()
 
@@ -60,14 +34,14 @@ class Day11(val oldMultiplier: Long = 1000000): Day {
         return total
     }
 
-    override fun part1(input: String): Int {
+    override fun part1(input: String): Long {
         val grid = StandardGrid.buildWithStrings(input) {Galaxy.valueOf(it)}
-        return calculateDistances(expandGrid(grid))
+        return calculateDistances(grid, 2)
     }
 
     override fun part2(input: String): Long {
         val grid = StandardGrid.buildWithStrings(input) {Galaxy.valueOf(it)}
-        return calculateDistancesOld(grid)
+        return calculateDistances(grid, oldMultiplier)
     }
 
 }
