@@ -10,6 +10,11 @@ import kotlin.math.max
 open class Grid<T> {
     protected val cells = HashMap<Int, HashMap<Int, T?>>()
 
+    val minX get() = cells.keys.min()
+    val maxX get() = cells.keys.max()
+    val minY get() = cells.values.flatMap { it.keys }.min()
+    val maxY get() = cells.values.flatMap { it.keys }.max()
+
     operator fun get(x: Int, y: Int): T? = cells[x]?.get(y)
     fun get(p: Pair<Int, Int>): T? = this[p.first, p.second]
     operator fun set(x: Int, y: Int, value: T?) {
@@ -27,6 +32,11 @@ open class Grid<T> {
             (x, e) -> e.entries.filter { (_, v) -> v != null }
                 .map { (y, v) -> Triple(x,y,v!!) }
         }
+    }
+
+    fun row(x: Int): List<Triple<Int, Int, T>> = cells[x]?.filter { (_,v) -> v != null }?.map { (y, v) -> Triple(x,y,v!!) } ?: emptyList()
+    fun col(y: Int): List<Triple<Int, Int, T>> = cells.flatMap { (x, e) ->
+        e.filter { (yc, v) -> y == yc && v != null }.map { (_, v) -> Triple(x,y,v!!) }
     }
 
     fun neighbors(original: Set<Pair<Int, Int>>): Map<Pair<Int,Int>, T?> =
@@ -58,10 +68,6 @@ open class StandardGrid<T: GridCell>(
     private val blank: Char = '.'
 ): Grid<T>() {
     fun pretty(): String {
-        val minX = cells.keys.min()
-        val maxX = cells.keys.max()
-        val minY = cells.values.flatMap { it.keys }.min()
-        val maxY = cells.values.flatMap { it.keys }.max()
         return (minX..maxX).map {x ->
             (minY..maxY).map {y ->
                 this[x,y]?.symbol ?: blank
