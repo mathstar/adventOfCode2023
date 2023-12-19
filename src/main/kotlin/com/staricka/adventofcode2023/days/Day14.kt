@@ -94,8 +94,6 @@ fun Grid<Rock>.load(): Int {
 }
 
 class Day14: Day {
-
-
     override fun part1(input: String): Int {
         val grid = StandardGrid.build(input, Rock::fromChar)
         grid.rollNorth()
