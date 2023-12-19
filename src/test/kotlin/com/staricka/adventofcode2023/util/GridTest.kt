@@ -14,6 +14,7 @@ class StandardGridEnumTest {
         assertNull(grid[0,1])
         assertNull(grid[1,0])
         assertNull(grid[400, -500])
+        assertEquals(grid, grid.clone())
 
         assertEquals("A.\n.B", grid.pretty())
 

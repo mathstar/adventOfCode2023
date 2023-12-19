@@ -72,7 +72,7 @@ fun Grid<Rock>.rollWest() {
     }
 }
 
-enum class RollDirection() {
+enum class RollDirection {
     NORTH, WEST, SOUTH, EAST;
 
     fun next(): RollDirection {
@@ -96,16 +96,16 @@ fun Grid<Rock>.load(): Int {
 class Day14: Day {
 
 
-    override fun part1(input: String): Any? {
+    override fun part1(input: String): Int {
         val grid = StandardGrid.build(input, Rock::fromChar)
         grid.rollNorth()
         return grid.load()
     }
 
-    override fun part2(input: String): Any? {
+    override fun part2(input: String): Int {
         val grid = StandardGrid.build(input, Rock::fromChar)
 
-        val history = LinkedHashMap<Pair<String, RollDirection>, Long>()
+        val history = LinkedHashMap<Pair<Grid<Rock>, RollDirection>, Long>()
         val totalRotations = 1000000000L * 4 - 1
 
         var loopStart = -1L
@@ -114,7 +114,7 @@ class Day14: Day {
             direction = direction.next()
             direction.rollGrid(grid)
 
-            val historyKey = Pair(grid.pretty(), direction)
+            val historyKey = Pair(grid.clone(), direction)
             if (history.containsKey(historyKey)) {
                 loopStart = history[historyKey]!!
                 break
@@ -125,7 +125,7 @@ class Day14: Day {
         val loopLength = history.size - loopStart
         val index = ((totalRotations - loopStart) % loopLength + loopStart).toInt()
 
-        val finalGridString = history.keys.toList()[index].first
-        return StandardGrid.build(finalGridString, Rock::fromChar).load()
+        val finalGrid = history.keys.toList()[index].first
+        return finalGrid.load()
     }
 }

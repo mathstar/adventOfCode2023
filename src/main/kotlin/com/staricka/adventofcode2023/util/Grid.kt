@@ -1,14 +1,14 @@
 package com.staricka.adventofcode2023.util
 
-import java.lang.StringBuilder
 import java.util.function.Function
-import kotlin.math.max
 
 /**
  * Utility class that represents a 2D grid of values
  */
-open class Grid<T> {
-    protected val cells = HashMap<Int, HashMap<Int, T?>>()
+open class Grid<T>(private val cells: HashMap<Int, HashMap<Int, T?>> = HashMap()) {
+    fun clone(): Grid<T> = Grid(
+        cells.entries.associateTo(HashMap()) { (k,v) -> k to v.entries.associateTo(HashMap()) { (k1, v1) -> k1 to v1 } }
+    )
 
     val minX get() = cells.keys.min()
     val maxX get() = cells.keys.max()
@@ -59,6 +59,21 @@ open class Grid<T> {
         neighbors(y.map { Pair(x, it) }.toHashSet())
     fun neighbors(x: IntRange, y: IntRange): Map<Pair<Int, Int>, T?> =
         neighbors(x.flatMap { i -> y.map { j -> Pair(i,j) } }.toHashSet())
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Grid<*>) return false
+
+        if (cells != other.cells) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return cells.hashCode()
+    }
+
+
 }
 
 /**
