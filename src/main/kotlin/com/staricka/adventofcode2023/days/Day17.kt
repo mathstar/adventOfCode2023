@@ -6,8 +6,6 @@ import com.staricka.adventofcode2023.util.Direction
 import com.staricka.adventofcode2023.util.Grid
 import com.staricka.adventofcode2023.util.GridCell
 import com.staricka.adventofcode2023.util.StandardGrid
-import java.util.LinkedList
-import java.util.TreeMap
 import kotlin.math.min
 
 data class CrucibleState(val heatLoss: Int, val direction: Direction, val directionStep: Int, val x: Int, val y: Int)
@@ -15,18 +13,12 @@ data class CrucibleState(val heatLoss: Int, val direction: Direction, val direct
 class CrucibleGridCell(val heatLoss: Int): GridCell {
     override val symbol = heatLoss.toString()[0]
 
-    //private val visited = HashMap<Direction, TreeMap<Int, Int>>()
     private val visited = HashMap<CrucibleQueueKey, Int>()
     private var minHeat: Int? = null
 
     fun visit(crucibleState: CrucibleState, minSteps: Int): Boolean {
         val crucibleHeatLoss = crucibleState.heatLoss
 
-//        val lowestHeatExisting = visited[crucibleState.direction]?.headMap(crucibleState.directionStep, true)?.values?.minOrNull()
-//        if (lowestHeatExisting != null && lowestHeatExisting <= crucibleHeatLoss) {
-//            return false
-//        }
-//        visited.computeIfAbsent(crucibleState.direction){TreeMap()}[crucibleState.directionStep] = crucibleHeatLoss
         val lowestHeatExisting = visited[crucibleState.toQueueKey()]
         if (lowestHeatExisting != null && lowestHeatExisting <= crucibleHeatLoss) {
             return false
@@ -44,7 +36,6 @@ class CrucibleGridCell(val heatLoss: Int): GridCell {
 
 fun CrucibleState.nextSteps(grid: Grid<CrucibleGridCell>, minSteps: Int = 0, maxSteps: Int = 3): List<CrucibleState> {
     if (x == grid.maxX && y == grid.maxY) {
-//        grid[x,y]!!.visit(this, minSteps)
         return emptyList()
     }
 
@@ -52,10 +43,6 @@ fun CrucibleState.nextSteps(grid: Grid<CrucibleGridCell>, minSteps: Int = 0, max
     if (minEndHeat != null && minEndHeat <= heatLoss) {
         return emptyList()
     }
-
-//    if (!grid[x, y]!!.visit(this)) {
-//        return emptyList()
-//    }
 
     return when (direction) {
         Direction.LEFT -> listOf(Pair(grid.left(x, y), Direction.LEFT), Pair(grid.up(x, y), Direction.UP), Pair(grid.down(x, y), Direction.DOWN))
@@ -103,7 +90,6 @@ class CrucibleQueue {
 
 fun Grid<CrucibleGridCell>.walk(minSteps: Int = 0, maxSteps: Int = 3): Int {
     val queue = CrucibleQueue()
-//    val queue = LinkedList<CrucibleState>()
     queue.add(CrucibleState(0, Direction.DOWN, 0, 0, 0))
     queue.add(CrucibleState(0, Direction.RIGHT, 0, 0, 0))
 
@@ -115,11 +101,11 @@ fun Grid<CrucibleGridCell>.walk(minSteps: Int = 0, maxSteps: Int = 3): Int {
 }
 
 class Day17: Day {
-    override fun part1(input: String): Any? {
+    override fun part1(input: String): Int {
         return StandardGrid.build(input){CrucibleGridCell(it - '0')}.walk()
     }
 
-    override fun part2(input: String): Any? {
+    override fun part2(input: String): Int {
         return StandardGrid.build(input){CrucibleGridCell(it - '0')}.walk(minSteps = 4, maxSteps = 10)
     }
 }
