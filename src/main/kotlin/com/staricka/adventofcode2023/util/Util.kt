@@ -14,3 +14,7 @@ fun String.splitByBlankLines(): List<String> {
     if (sb.isNotBlank()) result.add(sb.toString())
     return result
 }
+
+enum class Direction {
+    UP, LEFT, DOWN, RIGHT
+}
