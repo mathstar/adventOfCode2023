@@ -1,6 +1,8 @@
 package com.staricka.adventofcode2023.util
 
 import java.util.function.Function
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Utility class that represents a 2D grid of values
@@ -10,21 +12,36 @@ open class Grid<T>(private val cells: HashMap<Int, HashMap<Int, T?>> = HashMap()
         cells.entries.associateTo(HashMap()) { (k,v) -> k to v.entries.associateTo(HashMap()) { (k1, v1) -> k1 to v1 } }
     )
 
-    val minX get() = cells.keys.min()
-    val maxX get() = cells.keys.max()
-    val minY get() = cells.values.flatMap { it.keys }.min()
-    val maxY get() = cells.values.flatMap { it.keys }.max()
+    private var minXInner: Int? = null
+    private var maxXInner: Int? = null
+    private var minYInner: Int? = null
+    private var maxYInner: Int? = null
+
+    val minX get() = minXInner!!
+    val maxX get() = maxXInner!!
+    val minY get() = minYInner!!
+    val maxY get() = maxYInner!!
 
     operator fun get(x: Int, y: Int): T? = cells[x]?.get(y)
     fun get(p: Pair<Int, Int>): T? = this[p.first, p.second]
     operator fun set(x: Int, y: Int, value: T?) {
         cells.computeIfAbsent(x){HashMap()}[y] = value
+        minXInner = min(minXInner ?: Int.MAX_VALUE, x)
+        maxXInner = max(maxXInner ?: Int.MIN_VALUE, x)
+        minYInner = min(minYInner ?: Int.MAX_VALUE, y)
+        maxYInner = max(maxYInner ?: Int.MIN_VALUE, y)
     }
     fun remove(x: Int, y: Int) {
         cells[x]?.remove(y)
         if (cells[x]?.isEmpty() == true) {
             cells.remove(x)
         }
+
+        // recompute min/max
+        minXInner = cells.keys.minOrNull()
+        maxXInner = cells.keys.maxOrNull()
+        minYInner = cells.values.flatMap { it.keys }.minOrNull()
+        maxYInner = cells.values.flatMap { it.keys }.maxOrNull()
     }
 
     fun cells(): List<Triple<Int, Int, T>> {
@@ -38,6 +55,16 @@ open class Grid<T>(private val cells: HashMap<Int, HashMap<Int, T?>> = HashMap()
     fun col(y: Int): List<Triple<Int, Int, T>> = cells.flatMap { (x, e) ->
         e.filter { (yc, v) -> y == yc && v != null }.map { (_, v) -> Triple(x,y,v!!) }
     }
+
+    fun left(x: Int, y: Int) = Triple(x, y-1, this[x, y-1])
+    fun right(x: Int, y: Int) = Triple(x, y+1, this[x, y+1])
+    fun up(x: Int, y: Int) = Triple(x-1, y, this[x-1, y])
+    fun down(x: Int, y: Int) = Triple(x+1, y, this[x+1, y])
+
+    fun left(p: Pair<Int, Int>) = left(p.first, p.second)
+    fun right(p: Pair<Int, Int>) = right(p.first, p.second)
+    fun up(p: Pair<Int, Int>) = up(p.first, p.second)
+    fun down(p: Pair<Int, Int>) = down(p.first, p.second)
 
     fun neighbors(original: Set<Pair<Int, Int>>): Map<Pair<Int,Int>, T?> =
         original.flatMap {
