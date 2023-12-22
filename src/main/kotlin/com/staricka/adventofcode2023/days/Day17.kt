@@ -19,7 +19,7 @@ class CrucibleGridCell(val heatLoss: Int): GridCell {
     private val visited = HashMap<CrucibleQueueKey, Int>()
     private var minHeat: Int? = null
 
-    fun visit(crucibleState: CrucibleState): Boolean {
+    fun visit(crucibleState: CrucibleState, minSteps: Int): Boolean {
         val crucibleHeatLoss = crucibleState.heatLoss
 
 //        val lowestHeatExisting = visited[crucibleState.direction]?.headMap(crucibleState.directionStep, true)?.values?.minOrNull()
@@ -33,27 +33,29 @@ class CrucibleGridCell(val heatLoss: Int): GridCell {
         }
         visited[crucibleState.toQueueKey()] = crucibleHeatLoss
 
-        minHeat = min(minHeat ?: Int.MAX_VALUE, crucibleHeatLoss)
+        if (minSteps <= crucibleState.directionStep) {
+            minHeat = min(minHeat ?: Int.MAX_VALUE, crucibleHeatLoss)
+        }
         return true
     }
 
     fun minVisitedHeat() = minHeat
 }
 
-fun CrucibleState.nextSteps(grid: Grid<CrucibleGridCell>): List<CrucibleState> {
+fun CrucibleState.nextSteps(grid: Grid<CrucibleGridCell>, minSteps: Int = 0, maxSteps: Int = 3): List<CrucibleState> {
     if (x == grid.maxX && y == grid.maxY) {
-        grid[x,y]!!.visit(this)
+//        grid[x,y]!!.visit(this, minSteps)
         return emptyList()
     }
 
-//    val minEndHeat = grid[grid.maxX, grid.maxY]!!.minVisitedHeat()
-//    if (minEndHeat != null && minEndHeat <= heatLoss) {
+    val minEndHeat = grid[grid.maxX, grid.maxY]!!.minVisitedHeat()
+    if (minEndHeat != null && minEndHeat <= heatLoss) {
+        return emptyList()
+    }
+
+//    if (!grid[x, y]!!.visit(this)) {
 //        return emptyList()
 //    }
-
-    if (!grid[x, y]!!.visit(this)) {
-        return emptyList()
-    }
 
     return when (direction) {
         Direction.LEFT -> listOf(Pair(grid.left(x, y), Direction.LEFT), Pair(grid.up(x, y), Direction.UP), Pair(grid.down(x, y), Direction.DOWN))
@@ -62,10 +64,14 @@ fun CrucibleState.nextSteps(grid: Grid<CrucibleGridCell>): List<CrucibleState> {
         Direction.DOWN -> listOf(Pair(grid.down(x, y), Direction.DOWN), Pair(grid.left(x, y), Direction.LEFT), Pair(grid.right(x, y), Direction.RIGHT))
     }.asSequence().filter { (dest, _) ->
         dest.third != null
+    }.filter { (_, newDirection) ->
+        directionStep >= minSteps || newDirection == direction
     }.map { (dest, newDirection) ->
         CrucibleState(heatLoss + grid[dest.first,dest.second]!!.heatLoss, newDirection, if (newDirection == direction) directionStep + 1 else 1, dest.first, dest.second)
     }.filter {
-        it.directionStep <= 3
+        it.directionStep <= maxSteps
+    }.filter {
+        grid[it.x, it.y]!!.visit(it, minSteps)
     }.toList()
 }
 
@@ -95,13 +101,14 @@ class CrucibleQueue {
     fun isNotEmpty() = delegate.isNotEmpty()
 }
 
-fun Grid<CrucibleGridCell>.walk(): Int {
+fun Grid<CrucibleGridCell>.walk(minSteps: Int = 0, maxSteps: Int = 3): Int {
     val queue = CrucibleQueue()
 //    val queue = LinkedList<CrucibleState>()
-    queue.add(CrucibleState(0, Direction.LEFT, 0, 0, 0))
+    queue.add(CrucibleState(0, Direction.DOWN, 0, 0, 0))
+    queue.add(CrucibleState(0, Direction.RIGHT, 0, 0, 0))
 
     while (queue.isNotEmpty()) {
-        queue.pop().nextSteps(this).forEach { queue.add(it) }
+        queue.pop().nextSteps(this, minSteps, maxSteps).forEach { queue.add(it) }
     }
 
     return this[maxX, maxY]!!.minVisitedHeat()!!
@@ -113,6 +120,6 @@ class Day17: Day {
     }
 
     override fun part2(input: String): Any? {
-        TODO("Not yet implemented")
+        return StandardGrid.build(input){CrucibleGridCell(it - '0')}.walk(minSteps = 4, maxSteps = 10)
     }
 }
