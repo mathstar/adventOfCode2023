@@ -1,6 +1,7 @@
 package com.staricka.adventofcode2023.util
 
 import java.util.function.Function
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -21,6 +22,8 @@ open class Grid<T>(private val cells: HashMap<Int, HashMap<Int, T?>> = HashMap()
     val maxX get() = maxXInner!!
     val minY get() = minYInner!!
     val maxY get() = maxYInner!!
+
+    fun size() = (abs(minX - maxX) + 1) * (abs(minY - maxY) + 1)
 
     operator fun get(x: Int, y: Int): T? = cells[x]?.get(y)
     fun get(p: Pair<Int, Int>): T? = this[p.first, p.second]
