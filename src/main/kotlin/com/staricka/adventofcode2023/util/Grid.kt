@@ -9,9 +9,16 @@ import kotlin.math.min
  * Utility class that represents a 2D grid of values
  */
 open class Grid<T>(private val cells: HashMap<Int, HashMap<Int, T?>> = HashMap()) {
-    fun clone(): Grid<T> = Grid(
-        cells.entries.associateTo(HashMap()) { (k,v) -> k to v.entries.associateTo(HashMap()) { (k1, v1) -> k1 to v1 } }
-    )
+    fun clone(): Grid<T> {
+        val clone = Grid (
+            cells.entries.associateTo(HashMap()) { (k, v) -> k to v.entries.associateTo(HashMap()) { (k1, v1) -> k1 to v1 } }
+        )
+        clone.minXInner = minXInner
+        clone.maxXInner = maxXInner
+        clone.minYInner = minYInner
+        clone.maxYInner = maxYInner
+        return clone
+    }
 
     private var minXInner: Int? = null
     private var maxXInner: Int? = null
