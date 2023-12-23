@@ -11,14 +11,16 @@ fun instantiateDay(dayNumber: Int): Day? {
 fun benchmark() {
     var total = 0L
     for (d in 1..25) {
-        val day = instantiateDay(d)
-        if (day != null) {
-            val input = day.inputProvider.getInput(d)
-            val part1 = measureTimeMillis { day.part1(input) }
-            val part2 = measureTimeMillis { day.part2(input) }
-            println("Day $d: ${part1}ms + ${part2}ms = ${part1 + part2}ms")
-            total += part1 + part2
-        }
+        try {
+            val day = instantiateDay(d)
+            if (day != null) {
+                val input = day.inputProvider.getInput(d)
+                val part1 = measureTimeMillis { day.part1(input) }
+                val part2 = measureTimeMillis { day.part2(input) }
+                println("Day $d: ${part1}ms + ${part2}ms = ${part1 + part2}ms")
+                total += part1 + part2
+            }
+        } catch (_: ClassNotFoundException) {}
     }
     println("Total: ${total}ms")
 }
