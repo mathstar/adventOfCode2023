@@ -3,7 +3,7 @@ package com.staricka.adventofcode2023.framework
 import kotlin.reflect.full.createInstance
 import kotlin.system.measureTimeMillis
 
-fun instantiateDay(dayNumber: Int): Day? {
+fun instantiateDay(dayNumber: Int): Day {
     val day = Class.forName("com.staricka.adventofcode2023.days.Day$dayNumber")?.kotlin
     return day?.createInstance() as Day
 }
@@ -13,13 +13,11 @@ fun benchmark() {
     for (d in 1..25) {
         try {
             val day = instantiateDay(d)
-            if (day != null) {
-                val input = day.inputProvider.getInput(d)
-                val part1 = measureTimeMillis { day.part1(input) }
-                val part2 = measureTimeMillis { day.part2(input) }
-                println("Day $d: ${part1}ms + ${part2}ms = ${part1 + part2}ms")
-                total += part1 + part2
-            }
+            val input = day.inputProvider.getInput(d)
+            val part1 = measureTimeMillis { day.part1(input) }
+            val part2 = measureTimeMillis { day.part2(input) }
+            println("Day $d: ${part1}ms + ${part2}ms = ${part1 + part2}ms")
+            total += part1 + part2
         } catch (_: ClassNotFoundException) {}
     }
     println("Total: ${total}ms")
@@ -56,12 +54,6 @@ fun main() {
 
     try {
         val day = instantiateDay(dayNumber)
-
-        if (day == null) {
-            println("Invalid day")
-            return
-        }
-
         day.run(part)
     } catch (_: ClassNotFoundException) {
         println("Invalid day")
