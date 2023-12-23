@@ -1,6 +1,7 @@
 package com.staricka.adventofcode2023.framework
 
 import java.lang.Exception
+import kotlin.system.measureTimeMillis
 
 interface Day {
     val id: Int?
@@ -14,11 +15,25 @@ interface Day {
     fun run(part: DayPart = DayPart.BOTH) {
         val input = id?.let { inputProvider.getInput(it) } ?: throw Exception("Unexpected day class name")
         when (part) {
-            DayPart.PART1 -> println(part1(input))
-            DayPart.PART2 -> println(part2(input))
+            DayPart.PART1 -> {
+                var result: Any?
+                val time = measureTimeMillis { result = part1(input) }
+                println(result)
+                println("Runtime: ${time}ms")
+            }
+            DayPart.PART2 -> {
+                var result: Any?
+                val time = measureTimeMillis { result = part2(input) }
+                println(result)
+                println("Runtime: ${time}ms")
+            }
             DayPart.BOTH -> {
-                println(part1(input))
-                println(part2(input))
+                var result: Any?
+                val time1 = measureTimeMillis { result = part1(input) }
+                println(result)
+                val time2 = measureTimeMillis { result = part2(input) }
+                println(result)
+                println("Runtime: ${time1}ms + ${time2}ms = ${time1 + time2}ms")
             }
         }
     }
