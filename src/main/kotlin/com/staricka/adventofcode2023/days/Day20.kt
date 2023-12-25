@@ -7,7 +7,6 @@ import java.util.LinkedList
 interface PulseModule {
     val name: String
     val dest: List<String>
-    fun inOriginalState(): Boolean
     fun processPulse(pulse: Pulse): List<Pulse>
 
     companion object {
@@ -30,9 +29,7 @@ interface PulseModule {
 data class Pulse(val source: String, val dest: String, val high: Boolean)
 
 class FlipFlopModule(override val name: String, override val dest: List<String>): PulseModule {
-    var state = false
-
-    override fun inOriginalState() = !state
+    private var state = false
 
     override fun processPulse(pulse: Pulse): List<Pulse> {
         if (pulse.high) return emptyList()
@@ -43,13 +40,11 @@ class FlipFlopModule(override val name: String, override val dest: List<String>)
 }
 
 class ConjunctionModule(override val name: String, override val dest: List<String>): PulseModule {
-    var inputStates: MutableMap<String, Boolean> = mutableMapOf()
+    private var inputStates: MutableMap<String, Boolean> = mutableMapOf()
 
     fun updateInputs(inputs: List<PulseModule>) {
         inputStates = inputs.filter { it.dest.contains(name) }.map { it.name }.associateWith { false }.toMutableMap()
     }
-
-    override fun inOriginalState() = inputStates.values.all { !it }
 
     override fun processPulse(pulse: Pulse): List<Pulse> {
         inputStates[pulse.source] = pulse.high
@@ -61,8 +56,6 @@ class ConjunctionModule(override val name: String, override val dest: List<Strin
 }
 
 class BroadcastModule(override val name: String, override val dest: List<String>): PulseModule {
-    override fun inOriginalState() = true
-
     override fun processPulse(pulse: Pulse): List<Pulse> {
         return dest.map { Pulse(name, it, pulse.high) }
     }
@@ -73,8 +66,6 @@ class EndModule(override val name: String): PulseModule {
 
     var signaled = false
 
-    override fun inOriginalState() = true
-
     override fun processPulse(pulse: Pulse): List<Pulse> {
         if (!pulse.high) signaled = true
         return emptyList()
@@ -82,24 +73,7 @@ class EndModule(override val name: String): PulseModule {
 
 }
 
-data class LoopData(val length: Int, val lowPulses: Int, val highPulses: Int)
-
-fun findLoop(modules: Map<String, PulseModule>, limit: Int?): LoopData {
-    var count = 0
-    var lowCount = 0
-    var highCount = 0
-
-    while (limit == null || count < limit) {
-        count++
-
-        val data = runIteration(modules)
-        highCount += data.highPulses
-        lowCount += data.lowPulses
-
-        if (modules.values.all { it.inOriginalState() }) return LoopData(count, lowCount, highCount)
-    }
-    return LoopData(count, lowCount, highCount)
-}
+data class IterationData(val lowPulses: Int, val highPulses: Int)
 
 fun findExitSignal(modules: Map<String, PulseModule>): Int {
     var count = 0
@@ -113,7 +87,7 @@ fun findExitSignal(modules: Map<String, PulseModule>): Int {
     }
 }
 
-private fun runIteration(modules: Map<String, PulseModule>): LoopData {
+private fun runIteration(modules: Map<String, PulseModule>): IterationData {
     var highCount = 0
     var lowCount = 0
 
@@ -126,7 +100,7 @@ private fun runIteration(modules: Map<String, PulseModule>): LoopData {
         pulseQueue.addAll(modules[pulse.dest]?.processPulse(pulse) ?: emptyList())
     }
 
-    return LoopData(1, lowCount, highCount)
+    return IterationData(lowCount, highCount)
 }
 
 fun parseInput(input: String, andEndModule: Boolean = false): Map<String, PulseModule> {
@@ -141,17 +115,13 @@ fun parseInput(input: String, andEndModule: Boolean = false): Map<String, PulseM
 }
 
 class Day20: Day {
-    override fun part1(input: String): Any? {
+    override fun part1(input: String): Long {
         val modules = parseInput(input)
-        val loopData = findLoop(modules, 1000)
 
-        val loops = 1000 / loopData.length
-        val additionalIterations = 1000 % loopData.length
+        var highPulses = 0L
+        var lowPulses = 0L
 
-        var highPulses = loopData.highPulses.toLong() * loops
-        var lowPulses = loopData.lowPulses.toLong() * loops
-
-        for (i in 1..additionalIterations) {
+        for (i in 1..1000) {
             val iter = runIteration(modules)
             highPulses += iter.highPulses
             lowPulses += iter.lowPulses
