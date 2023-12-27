@@ -2,11 +2,18 @@ package com.staricka.adventofcode2023.days
 
 import com.staricka.adventofcode2023.days.PulseModule.Companion.toPulseModule
 import com.staricka.adventofcode2023.framework.Day
+import com.staricka.adventofcode2023.util.lcm
 import java.util.LinkedList
 
 interface PulseModule {
     val name: String
     val dest: List<String>
+    var sources: List<String>
+
+    fun updateSources(modules: List<PulseModule>) {
+        sources = modules.filter { it.dest.contains(name) }.map { it.name }
+    }
+
     fun processPulse(pulse: Pulse): List<Pulse>
 
     companion object {
@@ -29,6 +36,7 @@ interface PulseModule {
 data class Pulse(val source: String, val dest: String, val high: Boolean)
 
 class FlipFlopModule(override val name: String, override val dest: List<String>): PulseModule {
+    override var sources = emptyList<String>()
     private var state = false
 
     override fun processPulse(pulse: Pulse): List<Pulse> {
@@ -40,10 +48,16 @@ class FlipFlopModule(override val name: String, override val dest: List<String>)
 }
 
 class ConjunctionModule(override val name: String, override val dest: List<String>): PulseModule {
+    override var sources = emptyList<String>()
     private var inputStates: MutableMap<String, Boolean> = mutableMapOf()
 
-    fun updateInputs(inputs: List<PulseModule>) {
-        inputStates = inputs.filter { it.dest.contains(name) }.map { it.name }.associateWith { false }.toMutableMap()
+    override fun updateSources(modules: List<PulseModule>) {
+        super.updateSources(modules)
+        updateInputs(modules)
+    }
+
+    private fun updateInputs(modules: List<PulseModule>) {
+        inputStates = modules.filter { it.dest.contains(name) }.map { it.name }.associateWith { false }.toMutableMap()
     }
 
     override fun processPulse(pulse: Pulse): List<Pulse> {
@@ -56,15 +70,17 @@ class ConjunctionModule(override val name: String, override val dest: List<Strin
 }
 
 class BroadcastModule(override val name: String, override val dest: List<String>): PulseModule {
+    override var sources = emptyList<String>()
     override fun processPulse(pulse: Pulse): List<Pulse> {
         return dest.map { Pulse(name, it, pulse.high) }
     }
 }
 
 class EndModule(override val name: String): PulseModule {
+    override var sources = emptyList<String>()
     override val dest = emptyList<String>()
 
-    var signaled = false
+    private var signaled = false
 
     override fun processPulse(pulse: Pulse): List<Pulse> {
         if (!pulse.high) signaled = true
@@ -75,19 +91,23 @@ class EndModule(override val name: String): PulseModule {
 
 data class IterationData(val lowPulses: Int, val highPulses: Int)
 
-fun findExitSignal(modules: Map<String, PulseModule>): Int {
+fun findExitSignal(modules: Map<String, PulseModule>): Long {
     var count = 0
+
+    // assume rx is fed by a single ConjunctionModule - throws exception otherwise
+    val nodesFeedingOutput = (modules[modules["rx"]!!.sources.single()]!! as ConjunctionModule).sources
+    val nodesFeedingOutputCycle = nodesFeedingOutput.associateWith<String, Int?> { null }.toMutableMap()
 
     while (true) {
         count++
 
-        val data = runIteration(modules)
+        runIteration(modules, nodesFeedingOutputCycle, count)
 
-        if ((modules["rx"] as EndModule).signaled) return count
+        if (nodesFeedingOutputCycle.values.all { it != null }) return nodesFeedingOutputCycle.values.map { it!!.toLong() }.reduce{a,b -> lcm(a,b) }
     }
 }
 
-private fun runIteration(modules: Map<String, PulseModule>): IterationData {
+private fun runIteration(modules: Map<String, PulseModule>, nodesFeedingOutputCycle: MutableMap<String, Int?>? = null, iteration: Int = 0): IterationData {
     var highCount = 0
     var lowCount = 0
 
@@ -97,6 +117,9 @@ private fun runIteration(modules: Map<String, PulseModule>): IterationData {
     while (pulseQueue.isNotEmpty()) {
         val pulse = pulseQueue.pop()
         if (pulse.high) highCount++ else lowCount++
+        if (pulse.high && nodesFeedingOutputCycle != null && nodesFeedingOutputCycle.containsKey(pulse.source) && nodesFeedingOutputCycle[pulse.source] == null) {
+            nodesFeedingOutputCycle[pulse.source] = iteration
+        }
         pulseQueue.addAll(modules[pulse.dest]?.processPulse(pulse) ?: emptyList())
     }
 
@@ -109,8 +132,7 @@ fun parseInput(input: String, andEndModule: Boolean = false): Map<String, PulseM
         .associateBy { it.name }
         .toMutableMap()
     if (andEndModule) modules["rx"] = EndModule("rx")
-    modules.values.filterIsInstance<ConjunctionModule>()
-        .forEach { it.updateInputs(modules.values.toList()) }
+    modules.values.forEach{ it.updateSources(modules.values.toList()) }
     return modules
 }
 
@@ -130,7 +152,7 @@ class Day20: Day {
         return lowPulses * highPulses
     }
 
-    override fun part2(input: String): Any? {
+    override fun part2(input: String): Long {
         val modules = parseInput(input, andEndModule = true)
         return findExitSignal(modules)
     }
