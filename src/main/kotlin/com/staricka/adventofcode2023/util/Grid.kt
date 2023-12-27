@@ -97,6 +97,11 @@ open class Grid<T>(private val cells: HashMap<Int, HashMap<Int, T?>> = HashMap()
     fun neighbors(x: IntRange, y: IntRange): Map<Pair<Int, Int>, T?> =
         neighbors(x.flatMap { i -> y.map { j -> Pair(i,j) } }.toHashSet())
 
+    fun manhattanNeighbors(original: Pair<Int, Int>): List<Triple<Int, Int, T?>> {
+        return listOf(up(original), left(original), right(original), down(original))
+    }
+    fun manhattanNeighbors(x: Int, y: Int) = manhattanNeighbors(Pair(x,y))
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Grid<*>) return false
